@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  nestjs-app:
+    build: .
+    container_name: nestjs_app
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgresql://postgres:password@postgres:5432/mydatabase"
+    env_file:
+      - .env
+    network_mode: "host"
+
+  postgres:
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydatabase
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 5
+      timeout: 3s
+
+volumes:
+  postgres_data:
